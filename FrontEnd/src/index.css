@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-cover bg-center bg-no-repeat min-h-screen;
+  background-image: url('https://images.unsplash.com/photo-1587613751142-1dfb7d89cdd3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80');
+}
