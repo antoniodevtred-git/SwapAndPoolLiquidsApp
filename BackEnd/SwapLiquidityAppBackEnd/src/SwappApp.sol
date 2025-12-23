@@ -67,30 +67,31 @@ contract SwappApp {
 
     // Remove liquidity
     function removeLiquidity(
-        address tokenA_,
-        address tokenB_,
-        uint liquidity_,
-        uint amountAMin_,
-        uint amountBMin_,
-        address to_
-    ) external {
-        address pair = pairFor(tokenA_, tokenB_);
-        require(IERC20(pair).transferFrom(msg.sender, address(this), liquidity_), "07");
-        require(IERC20(pair).approve(address(router), liquidity_), "08");
+    address tokenA_,
+    address tokenB_,
+    uint liquidity_,
+    uint amountAMin_,
+    uint amountBMin_,
+    address to_
+) external {
+    // 🔴 NO calcules el pair aquí
+    // El usuario ya aprobó el LP token al router
 
-        router.removeLiquidity(
-            tokenA_,
-            tokenB_,
-            liquidity_,
-            amountAMin_,
-            amountBMin_,
-            to_,
-            block.timestamp + 600
-        );
-    }
+    router.removeLiquidity(
+        tokenA_,
+        tokenB_,
+        liquidity_,
+        amountAMin_,
+        amountBMin_,
+        to_,
+        block.timestamp + 600
+    );
+}
 
     // Helper (no implementado aún)
     function pairFor(address tokenA_, address tokenB_) public pure returns (address) {
-        revert("pairFor not implemented");
+    // Devuelve una dirección simulada que dependa de los tokens
+        return address(uint160(uint256(keccak256(abi.encodePacked(tokenA_, tokenB_)))));
     }
+
 }
