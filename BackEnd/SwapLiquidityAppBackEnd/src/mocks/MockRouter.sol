@@ -42,19 +42,23 @@ contract MockRouter is IV2Router02 {
     }
 
     function removeLiquidity(
-    address tokenA_,
-    address tokenB_,
-    uint256,
-    uint256,
-    uint256,
-    address to_,
-    uint256
-) external override returns (uint256 amountA, uint256 amountB) {
-    amountA = 50 ether;
-    amountB = 50 ether;
+        address, 
+        address, 
+        uint256 liquidity, 
+        uint256, 
+        uint256, 
+        address to, 
+        uint256
+    ) external override returns (uint256 amountA, uint256 amountB) {
+        // Suponemos una proporción fija para simular resultados
+        amountA = liquidity / 2;
+        amountB = liquidity / 2;
 
-    // 🔥 TRANSFERENCIA REAL (esto faltaba)
-    IERC20(tokenA_).transfer(to_, amountA);
-    IERC20(tokenB_).transfer(to_, amountB);
-}
+        // Transferimos tokens simulados al usuario
+        IERC20(tokenA).transfer(to, amountA);
+        IERC20(tokenB).transfer(to, amountB);
+
+        return (amountA, amountB);
+    }
+
 }

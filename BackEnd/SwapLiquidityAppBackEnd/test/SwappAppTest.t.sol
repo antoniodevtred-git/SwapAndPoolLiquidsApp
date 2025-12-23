@@ -51,49 +51,75 @@ contract SwappAppTest is Test {
         tokenA.approve(address(app), 100 ether);
         tokenB.approve(address(app), 100 ether);
 
-        app.addLiquidity(
-            address(tokenA),
-            address(tokenB),
-            100 ether,
-            100 ether,
-            90 ether,
-            90 ether,
-            user
-        );
+        app.addLiquidity(address(tokenA), address(tokenB), 100 ether, 100 ether, 90 ether, 90 ether, user);
 
         vm.stopPrank();
     }
 
-    function testSwapTokens() public {
+    function testFuzzAddLiquidity(uint256 amountA, uint256 amountB) public {
+    vm.assume(amountA > 0 && amountA <= 1000 ether);
+    vm.assume(amountB > 0 && amountB <= 1000 ether);
+
     vm.startPrank(user);
 
-    uint amountIn = 100 ether;
-    uint amountOutMin = 90 ether;
+    tokenA.mint(user, amountA);
+    tokenB.mint(user, amountB);
 
-    // ✅ El usuario aprueba al contrato
-    tokenA.approve(address(app), amountIn);
+    tokenA.approve(address(app), amountA);
+    tokenB.approve(address(app), amountB);
 
-    // ✅ Mock: el router necesita balance de tokenB para hacer transfer al user
-    tokenB.mint(address(router), amountOutMin);
-
-    uint initialTokenBBalance = tokenB.balanceOf(user);
-
-    // Ejecutamos el swap
-    app.swapTokens(
-        address(tokenA),
-        address(tokenB),
-        amountIn,
-        amountOutMin,
-        user
-    );
-
-    // Validamos que el usuario recibió los tokenB
-    uint finalTokenBBalance = tokenB.balanceOf(user);
-    assertGt(finalTokenBBalance, initialTokenBBalance, "User did not receive TokenB");
+    app.addLiquidity(address(tokenA), address(tokenB), amountA, amountB, 1, 1, user );
 
     vm.stopPrank();
 }
 
+
+    function testSwapTokens() public {
+        vm.startPrank(user);
+
+        uint amountIn = 100 ether;
+        uint amountOutMin = 90 ether;
+
+        // ✅ El usuario aprueba al contrato
+        tokenA.approve(address(app), amountIn);
+
+        // ✅ Mock: el router necesita balance de tokenB para hacer transfer al user
+        tokenB.mint(address(router), amountOutMin);
+
+        uint initialTokenBBalance = tokenB.balanceOf(user);
+
+        // Ejecutamos el swap
+        app.swapTokens(address(tokenA), address(tokenB), amountIn, amountOutMin, user);
+
+        // Validamos que el usuario recibió los tokenB
+        uint finalTokenBBalance = tokenB.balanceOf(user);
+        assertGt(finalTokenBBalance, initialTokenBBalance, "User did not receive TokenB");
+
+        vm.stopPrank();
+    }
+
+    function testFuzzSwapTokens(uint256 amountIn, uint256 amountOutMin) public {
+        // Filtro los valores
+        vm.assume(amountIn > 0 && amountIn <= 1000 ether);
+        vm.assume(amountOutMin > 0 && amountOutMin <= amountIn);
+
+        vm.startPrank(user);
+
+        // Preparar fondos y aprobaciones
+        tokenA.mint(user, amountIn);
+        tokenB.mint(address(router), amountOutMin);
+        tokenA.approve(address(app), amountIn);
+
+        uint256 initialBalance = tokenB.balanceOf(user);
+
+        app.swapTokens(address(tokenA), address(tokenB), amountIn, amountOutMin, user);
+
+        uint256 finalBalance = tokenB.balanceOf(user);
+
+        assertGt(finalBalance, initialBalance, "User did not receive tokenB");
+
+        vm.stopPrank();
+    }
 
 
     function testRemoveLiquidity() public {
@@ -109,14 +135,7 @@ contract SwappAppTest is Test {
         uint initialTokenBBalance = tokenB.balanceOf(user);
         tokenA.mint(address(router), 50 ether);
         tokenB.mint(address(router), 50 ether);
-        app.removeLiquidity(
-            address(tokenA),
-            address(tokenB),
-            liquidity,
-            90 ether,
-            90 ether,
-            user
-        );
+        app.removeLiquidity(address(tokenA), address(tokenB), liquidity, 90 ether, 90 ether, user);
 
         uint finalTokenABalance = tokenA.balanceOf(user);
         uint finalTokenBBalance = tokenB.balanceOf(user);
@@ -127,4 +146,29 @@ contract SwappAppTest is Test {
         vm.stopPrank();
     }
 
+    function testFuzzRemoveLiquidity(uint256 liquidity) public {
+        vm.assume(liquidity > 10000 && liquidity <= 1000 ether);
+
+        vm.startPrank(user);
+
+        lpToken.mint(user, liquidity);
+        lpToken.approve(address(app), liquidity);
+
+        tokenA.mint(address(router), liquidity / 2);
+        tokenB.mint(address(router), liquidity / 2);
+
+        uint initialTokenABalance = tokenA.balanceOf(user);
+        uint initialTokenBBalance = tokenB.balanceOf(user);
+
+        app.removeLiquidity(address(tokenA), address(tokenB), liquidity, 1, 1, user);
+
+        uint finalTokenABalance = tokenA.balanceOf(user);
+        uint finalTokenBBalance = tokenB.balanceOf(user);
+
+        assertGt(finalTokenABalance, initialTokenABalance, "User did not receive TokenA");
+        assertGt(finalTokenBBalance, initialTokenBBalance, "User did not receive TokenB");
+
+        vm.stopPrank();
+    }
+    
 }

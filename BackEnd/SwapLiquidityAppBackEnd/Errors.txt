@@ -6,5 +6,4 @@
 06-Approve B failed
 07-Transfer LP token failed
 08-Approve LP token failed
-uint256[] memory result = new uint256[](2);
         
