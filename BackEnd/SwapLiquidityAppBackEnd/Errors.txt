@@ -1,0 +1,9 @@
+01-Transfer failed
+02-Approve failed
+03-Transfer A failed
+04-Transfer B failed
+05-Approve A failed
+06-Approve B failed
+07-Transfer LP token failed
+08-Approve LP token failed
+        
